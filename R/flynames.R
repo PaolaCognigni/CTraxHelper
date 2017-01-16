@@ -1,0 +1,2 @@
+females<-c('Amy','Bev','Cat','Dot','Eve','Flo','Gee','Het','Ivy','Joy','Kim','Liz','Meg','Nya','Ora','Pam','Ray','Sue','Tai','Uma','Val','Zoe')
+males  <-c('Abe','Ben','Cal','Dan','Eli','Fin','Gus','Hal','Ian','Joe','Kit','Lee','Max','Nat','Ott','Pat','Rob','Sam','Ted','Vic','Wes','Zeb')
