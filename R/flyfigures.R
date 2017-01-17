@@ -44,7 +44,7 @@ flyfigures<-function (trx,stepsize=6,output='df') {
     steps<-matrix(complex(real=rotx,imaginary=roty),ncol=stepsize)
   }
   else { steps<-list('x'=rotx,'y'=roty, 'id'=idmatrix[,1], 'start'=trx$time)  }
-##   goodrows<-complete.cases(modmatrix) & complete.cases(argmatrix)
+
   return(steps)
 }
 
