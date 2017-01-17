@@ -99,7 +99,8 @@ trxgarnish <- function (explist,t=NULL,filter=TRUE)
 
    if (filter==TRUE) {
      fakes<-unique(c(which(trx$step>50), which(trx$x==0)))
-     trx[fakes,c("radius","edge","distance","quadrant","step","sidestep","spin","preference")]<-rep(NA,8)
+	   whichcols<-intersect(c("radius","edge","distance","quadrant","step","sidestep","spin","preference"),colnames(trx))
+     trx[fakes,whichcols]<-rep(NA,length(whichcols))
    }
 
    if ("trx" %in% names(explist)) {
