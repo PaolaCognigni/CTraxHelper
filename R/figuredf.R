@@ -17,7 +17,7 @@
 #'
 #'
 figuredf<-function (fig) {
-  if (mode(fig)=="list" & allc("x","y","id","start") %in% (names(fig))) {
+  if (mode(fig)=="list" & all(c("x","y","id","start") %in% (names(fig)))) {
     stepsize = ncol(fig$x)
     nfigs = nrow(fig$x)
     steps<-data.frame(
@@ -26,6 +26,8 @@ figuredf<-function (fig) {
       'step'=rep(0:(stepsize-1),each=nfigs),
       'starttime'=rep(fig$start,stepsize),
       'id'=rep(fig$id,stepsize) )
+    if ('spin' %in% names(fig))  {
+      steps<-cbind(steps,'spin'=matrix(fig$spin,ncol=1)) }
   steps<-steps[order(steps$id,steps$starttime),]
   return(steps)
   }

@@ -2,10 +2,12 @@
 
 export(PIquadrant)
 export(anglefix)
+export(figuredf)
 export(filldiff)
 export(flyangle)
 export(flychain)
 export(flyclass)
+export(flyfigures)
 export(flymoves)
 export(flyrun)
 export(flyspin)
