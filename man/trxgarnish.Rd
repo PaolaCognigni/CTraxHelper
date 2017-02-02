@@ -14,8 +14,8 @@ which must match equivalent columns in the track data frame.}
 }
 \value{
 A garnished track data frame or experiment list (depending on the format in input) including
-the columns \code{radius}, \code{edge}, \code{distance} and \code{quadrant}, and the first derivative variables
-\code{step}, \code{sidestep} and \code{spin}; if there is a time protocol, also
+the columns \code{radius}, \code{edge}, \code{distance} and \code{quadrant}, and the first and second
+derivative variables \code{step}, \code{sidestep} and \code{spin}; if there is a time protocol, also
 includes all columns of that data frame and the \code{preference} column calculated for the appropriate protocol section.
 }
 \description{
