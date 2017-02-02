@@ -1,10 +1,4 @@
 flydancer <- function (fig) {
-  # if (mode(fig)=="complex") {
-  #   a<-list('x'=Re(fig),'y'=Im(fig))
-  #   fig<-a
-  # }
-  # steps<-ncol(fig$x)
-  # traces<-nrows(fig$x)
 
   if (mode(fig)=="complex") {
     dx<-(apply(Re(fig),1,diff))
