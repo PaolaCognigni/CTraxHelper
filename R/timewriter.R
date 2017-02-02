@@ -33,14 +33,14 @@
 #' @export
 #'
 #'
-timewriter <- function (lit,prot,sec3=0) {
-  # this is just to make sure lit ranges form 0 to 1; it should accept either logicals or integers
+timewriter<-function (lit, prot, sec3=0) {
+
   lit<-as.integer(as.logical(lit))
   lightson<-which(diff(lit)>0)+1
   duration<-length(lit)
 
   # simplificaton step: you can give it just the sequence of light activation patterns, ignoring off periods.
-  # this calculatin is just to allow it to take the Matlab driver sequence as acceptable input
+  # this calculation is just to allow it to take the Matlab driver sequence as acceptable input
   patterns<-prot[prot>1]
 
   # sectionlit uses morphological closing to merge the bursts of protocol section 2 into one event
@@ -63,13 +63,12 @@ timewriter <- function (lit,prot,sec3=0) {
   section.off[(patterns==3)]<-section.off[(patterns==3)]+(sec3)
 
   sectionsize<-round(median(section.off-section.on))
-  # IMPOSE option: use factual protocol info to say that a section is actually 18 fps x 30s = 540?
+
 
   # chunkswitch: select points at midpoint b/ween off and on to indicate you've moved to a new part
   # of the protocol. You need to guess two additional points before the beginning and after the end
   # of the whole protocol. These are estimated adding or subtracting the presumed section size.
-  chunkswitch<-(c(section.on,sectionsize+tail(section.on,1))+c(head(section.off,1)-sectionsize,section.off))%/%2
-
+  chunkswitch<-(c(section.on,2*sectionsize+tail(section.on,1))+c(head(section.off,1)-2*sectionsize,section.off))%/%2
 
   if (length(patterns)!=length(section.on)) {
     stop ("I need a protocol identity for each light event! I have ",length(section.on)," light events and ",length(patterns)," event ids")
@@ -81,20 +80,20 @@ timewriter <- function (lit,prot,sec3=0) {
   chunk<-rep(0, duration)
   section<-rep(0, duration)
   chunktimer<-integer(duration)
-  sectiontimer<-integer(duration)
+  sectiontimer<-rep(0,duration)
   lighttimer<-integer(duration)
   rept<-integer(duration)
 
   for (t in head(chunkswitch,1):tail(chunkswitch,1)) {
     whichstep<-max(tail(which(chunkswitch<=t),1),0)
-    if (whichstep!=0) {
+    if (whichstep>0 & whichstep<=length(section.on)) {
 
       section[t]<-sectionlit[t]*patterns[whichstep]
       chunk[t]<-patterns[whichstep]
       chunktimer[t]<-t-section.on[whichstep]
 
       whichend<-whichstep-(t<section.on[whichstep])
-      sectiontimer[t]<-(t-section.on[whichstep])*sectionlit[t]+(t-section.off[whichend])*(1-sectionlit[t])
+      sectiontimer[t]<-(t-section.on[whichstep])*sectionlit[t]+(t-c(0,section.off)[whichend+1])*(1-sectionlit[t])
 
       whichlight<-which.min(abs(t-lightson))
       lighttimer[t]<-t-lightson[whichlight]
@@ -102,7 +101,9 @@ timewriter <- function (lit,prot,sec3=0) {
     }
   }
   lighttimer[1:section.on[1]-1]<-(-section.on[1]+1):(-1)
+  sectiontimer[c(1:(head(section.on,1)-1),(tail(section.off,1)+1):duration)]<-0
   chunk[chunk==5]<-4
   t<-data.frame(time,lit,chunk,section,chunktimer,sectiontimer,lighttimer,rept)
   return(t)
 }
+
