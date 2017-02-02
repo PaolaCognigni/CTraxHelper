@@ -1,0 +1,55 @@
+---
+title: 'Report #3 - Blinking paradigm responses over 3s'
+output: html_document
+---
+```{r setup, include=FALSE}
+verbose=FALSE
+```
+
+
+```{r select-file, echo=verbose}
+datafile<-file.choose()
+load(datafile)
+proceed=FALSE
+if (exists("garn")) {proceed=TRUE}
+```
+
+This report plots the motor patterns triggered by repeated brief neuronal activation (section 3 of the optogenetic protocol). Data is extracted from the `garn` list from the data file **`r paste(dirname(datafile),basename(datafile),sep="/")`**. 
+
+`r if (proceed) {("The data show reoriented paths followed by flies during 10 consecutive 1s stimulations followed by 2s of rest, repeated twice with a 30s pause in between.")} else {("The plotting cannot proceed as the data file does not contain the appropriate variable.")}`
+
+
+```{r figuremaking, echo=all(verbose,proceed), eval=proceed, message=FALSE}
+require(CTraxHelper)
+nflies<-length(garn)
+
+figs<-list()
+for (i in 1:nflies) {
+  figs[[i]]<-flyfigures(garn[[i]]$trx,)
+  
+}
+
+
+
+```
+
+
+```{r plot, echo=all(verbose,proceed), eval=proceed, fig.width=10, fig.height=4, message=FALSE}
+
+require(ggplot2)  
+
+ggplot(PIrep,aes(x=gen,y=PI)) +
+  geom_boxplot(outlier.colour = NA) +
+  geom_point() +
+  ggtitle("PI by repeat")
+
+
+ggplot(PIfly[!is.na(PIfly$id),],aes(x=gen,y=PI)) +
+  geom_boxplot(outlier.colour = NA) +
+  geom_point() +
+  ggtitle("PI by fly")
+
+```
+
+
+
