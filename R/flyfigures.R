@@ -72,9 +72,11 @@ flyfigures<-function (trx,stepsize=6,output='list') {
   if (output=='complex') {
     steps<-matrix(complex(real=rotx,imaginary=roty),ncol=stepsize)
   }
+
   else { steps<-list('x'=rotx,'y'=roty, 'id'=idmatrix[,1], 'start'=trx$time)
     if ("spin" %in% colnames(trx)) { steps$spin<-spinmatrix }
   }
+
   return(steps)
 }
 
