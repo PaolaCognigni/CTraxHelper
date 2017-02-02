@@ -23,8 +23,8 @@
 #' which must match equivalent columns in the track data frame.
 #'
 #' @return A garnished track data frame or experiment list (depending on the format in input) including
-#' the columns \code{radius}, \code{edge}, \code{distance} and \code{quadrant}, and the first derivative variables
-#' \code{step}, \code{sidestep} and \code{spin}; if there is a time protocol, also
+#' the columns \code{radius}, \code{edge}, \code{distance} and \code{quadrant}, and the first and second
+#' derivative variables \code{step}, \code{sidestep} and \code{spin}; if there is a time protocol, also
 #' includes all columns of that data frame and the \code{preference} column calculated for the appropriate protocol section.
 #' @export
 #'
@@ -51,13 +51,13 @@ trxgarnish <- function (explist,t=NULL,filter=TRUE)
    topy<-tail(tempsort,4)
    bottomy<-head(tempsort,4)
    arena$y<-mean(c(median(topy),median(bottomy)))
-   arena$r<-mean(c(topx-arena$x,arena$x-bottomx,topy-arena$y,arena$y-bottomy))
+   arena$r<-max(c(topx-arena$x,arena$x-bottomx,topy-arena$y,arena$y-bottomy))
    if ("exp" %in% names(explist)) {
      explist$exp$arena<-arena }
 
    ### arena-based localisation variables
    radius<-((trx$x-arena$x)^2+(trx$y-arena$y)^2)^0.5
-   edge<-max(radius)-radius
+   edge<-max(radius[radius<400])-radius
    distance<-apply(cbind(abs(trx$x-arena$x),abs(trx$y-arena$y)),1,min)
    quadrant<-sign((trx$x-arena$x)*(trx$y-arena$y))
    trx<-cbind(trx,radius,edge,distance,quadrant)
@@ -66,7 +66,7 @@ trxgarnish <- function (explist,t=NULL,filter=TRUE)
    dx<-ave(trx$x,trx$id,FUN=filldiff)
    dy<-ave(trx$y,trx$id,FUN=filldiff)
    step<-(dx^2+dy^2)^0.5
-   sidestep<-anglefix(atan2(dx,dy))
+   sidestep<-anglefix(flyturn(trx,framelag=1))
    sidestep<-(abs(sidestep)>(pi/2))*pi + sidestep*((sidestep<=(pi/2))*2-1)
    spin<-anglefix(ave(trx$theta,trx$id,FUN=filldiff))
    spin<-(abs(spin)>(pi/2))*pi + spin*((spin<=(pi/2))*2-1)
