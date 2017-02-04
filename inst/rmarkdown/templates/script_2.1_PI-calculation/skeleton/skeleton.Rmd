@@ -1,26 +1,23 @@
 ---
-title: 'Report #2 - Quadrant preference'
+title: "Script 2.1 - Preference Index calculation"
+author: "Paola Cognigni"
+date: "4 February 2017"
 output: html_document
 ---
+
 ```{r setup, include=FALSE}
-verbose=FALSE
-```
-
-
-```{r select-file, echo=verbose}
-datafile<-file.choose()
-load(datafile)
-proceed=FALSE
-if (exists("garn")) {proceed=TRUE}
-```
-
-This report plots the preference behaviours in a quadrant activation paradigm (sections **4** and **5** of the protocol). Data is extracted from the `garn` list from the data file **`r paste(dirname(datafile),basename(datafile),sep="/")`**. 
-
-`r if (proceed) {("PIs are calculated averaging the quadrant (*on* or *off*) in which flies are found for the last 90 frames (5s) of the quadrant protocol. These are averaged by fly (over 4 quadrant repeats; therefore giving roughly N=number of flies, unless tracks have split during the experiment) or by protocol repeat (therefore always giving N=4).")} else {("The plotting cannot proceed as the data file does not contain the appropriate variable.")}`
-
-
-```{r PI_calculation, echo=all(verbose,proceed), eval=proceed, fig.width=10, fig.height=4, message=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
 require(CTraxHelper)
+require(ggplot2)
+```
+
+```{r data-file-input}
+load('garn.RData')
+```
+
+Preferences are calculated based on the position of flies in the last 5 s of each 30-s repeat of the quadrant paradigm. Preference is scored as 1 for each frame inside the lit quadrant and 0 for each frame outside.
+
+```{r PI-calc}
 PIbyfly<-list()
 PIbyrep<-list()
 nflies<-length(garn)
@@ -29,18 +26,27 @@ flynames<-names(garn)
 for (i in 1:nflies) {
   PIbyfly[[i]]<-PIquadrant(garn[[i]]$trx,by.fly=T)
   PIbyrep[[i]]<-PIquadrant(garn[[i]]$trx,by.fly=F) }
+```
 
+
+```{r PI-df}
 PIfly<-data.frame()
 PIrep<-data.frame()
 for (i in 1:nflies) {
-  PIfly<-rbind(PIfly,cbind(PIbyfly[[i]],'gen'=flynames[i]))
+  PIflytemp<-PIbyfly[[i]]
+  PIflytemp$id<-factor(PIflytemp$id)
+  PIfly<-rbind(PIfly,cbind(PIflytemp,'gen'=flynames[i]))
   PIrep<-rbind(PIrep,cbind(PIbyrep[[i]],'gen'=flynames[i])) 
 }
 
+colSums(table(PIfly[,c("id","gen")]))
+```
+
+
+```{r PI-plot, fig.height=5, fig.width=8}
+
 PIfly<-merge(PIfly,aggregate(PIfly$PI,by=list(gen=PIfly$gen),FUN="mean"))
 PIrep<-merge(PIrep,aggregate(PIrep$PI,by=list(gen=PIrep$gen),FUN="mean"))
-
-require(ggplot2)  
 
 ggplot(PIrep,aes(x=gen,y=PI)) +
   geom_boxplot(outlier.colour = NA, aes(fill=x)) +
@@ -57,4 +63,8 @@ ggplot(PIfly[!is.na(PIfly$id),],aes(x=gen,y=PI)) +
 ```
 
 
+The PI lists (by fly and by repeat) are saved in `PIcalc.RData`.
 
+```{r save}
+save(PIbyfly,PIbyrep,file="PIcalc.RData")
+```
