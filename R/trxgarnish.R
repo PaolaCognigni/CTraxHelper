@@ -38,7 +38,9 @@ trxgarnish <- function (explist,t=NULL,filter=TRUE,jump=40)
    ### guessarena: estimate centre by averaging the tom and bottom x and y values
    ### uses the median of the top and bottom 4 values to minimise outlier/error effects
    arena<-list()
-   position<-complex(real=trx$x,imaginary=trx$y)
+   x<-trx$x
+   y<-trx$y
+   position<-complex(real=x,imaginary=y)
 
    ## some tracks are temporarily lost and they are given a x,y location near 0,0; removed here
    ## to ensure they are not computed into the arena estimation
@@ -63,9 +65,11 @@ trxgarnish <- function (explist,t=NULL,filter=TRUE,jump=40)
                                         explist$exp$arena<-arena }
 
    ### re-center x,y to the arena centre and REPLACE original location variables
-   position<-complex(real=(Re(position)-arena$x),imaginary=(Im(position)-arena$y))
-   trx$x<-Re(position)
-   trx$y<-Im(position)
+   x<-x-arena$x
+   y<-y-arena$y
+   trx$x<-x
+   trx$y<-y
+   position<-complex(real=x,imaginary=y)
 
    ### calculate polar coordinates and use them to define quadrant identity
    r<-Mod(position)
@@ -77,7 +81,9 @@ trxgarnish <- function (explist,t=NULL,filter=TRUE,jump=40)
 
    ## order data by id so that gap-based calculations run correctly
    ## (consecutive rows are consecutive frames of one individual)
-   trx<-trx[order(trx$id,trx$time),]
+   ## this is very time-consuming and unnecessary given the current structure of CTrax output
+   ## which is already sorted by id, so it is now unused
+      #   trx<-trx[order(trx$id,trx$time),]
 
    ### movement variables: only frame-to-frame vars are calculated
    dx<-ave(trx$x,trx$id,FUN=filldiff)
@@ -102,15 +108,14 @@ trxgarnish <- function (explist,t=NULL,filter=TRUE,jump=40)
    ### or it can be passed to the function
    if (!is.null(t)) {
       t<-as.data.frame(lapply(t,FUN=as.integer))
-      trx<-merge(trx,t,by="time",all.x=T) }
+      trx<-merge(trx,t,by="time",all.x=T)
+      trx<-trx[order(trx$id,trx$time),]
+      }
 
    ### if time protocol information has been passed, calculate quadrant preference
    if ("section" %in% colnames(trx)) {
       preference<-as.integer(trx$distance*trx$quadrant*((trx$section>3)*((trx$section%%2)*2-1)))
       trx<-cbind(trx,preference) }
-
-   ## re-order data in case it's been shuffled by merge
-   trx<-trx[order(trx$id,trx$time),]
 
    ## factorise id
    trx$id<-factor(trx$id)
