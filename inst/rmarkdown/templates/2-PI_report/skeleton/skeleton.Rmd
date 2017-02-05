@@ -1,0 +1,60 @@
+---
+title: 'Report #2 - Quadrant preference'
+output: html_document
+---
+```{r setup, include=FALSE}
+verbose=FALSE
+```
+
+
+```{r select-file, echo=verbose}
+datafile<-file.choose()
+load(datafile)
+proceed=FALSE
+if (exists("garn")) {proceed=TRUE}
+```
+
+This report plots the preference behaviours in a quadrant activation paradigm (sections **4** and **5** of the protocol). Data is extracted from the `garn` list from the data file **`r paste(dirname(datafile),basename(datafile),sep="/")`**. 
+
+`r if (proceed) {("PIs are calculated averaging the quadrant (*on* or *off*) in which flies are found for the last 90 frames (5s) of the quadrant protocol. These are averaged by fly (over 4 quadrant repeats; therefore giving roughly N=number of flies, unless tracks have split during the experiment) or by protocol repeat (therefore always giving N=4).")} else {("The plotting cannot proceed as the data file does not contain the appropriate variable.")}`
+
+
+```{r PI_calculation, echo=all(verbose,proceed), eval=proceed, fig.width=10, fig.height=4, message=FALSE}
+require(CTraxHelper)
+PIbyfly<-list()
+PIbyrep<-list()
+nflies<-length(garn)
+flynames<-names(garn)
+
+for (i in 1:nflies) {
+  PIbyfly[[i]]<-PIquadrant(garn[[i]]$trx,by.fly=T)
+  PIbyrep[[i]]<-PIquadrant(garn[[i]]$trx,by.fly=F) }
+
+PIfly<-data.frame()
+PIrep<-data.frame()
+for (i in 1:nflies) {
+  PIfly<-rbind(PIfly,cbind(PIbyfly[[i]],'gen'=flynames[i]))
+  PIrep<-rbind(PIrep,cbind(PIbyrep[[i]],'gen'=flynames[i])) 
+}
+
+PIfly<-merge(PIfly,aggregate(PIfly$PI,by=list(gen=PIfly$gen),FUN="mean"))
+PIrep<-merge(PIrep,aggregate(PIrep$PI,by=list(gen=PIrep$gen),FUN="mean"))
+
+require(ggplot2)  
+
+ggplot(PIrep,aes(x=gen,y=PI)) +
+  geom_boxplot(outlier.colour = NA, aes(fill=x)) +
+  geom_point(aes(fill=PI), shape=21) +
+  scale_fill_gradient2(low="#3A89C9",mid='#FFFAD2',high='#D24D3E', name="PI") +
+  ggtitle("PI by repeat") + ylab(NULL) + xlab("genotype")
+
+ggplot(PIfly[!is.na(PIfly$id),],aes(x=gen,y=PI)) +
+  geom_boxplot(outlier.colour = NA, aes(fill=x)) +
+  geom_point(aes(fill=PI),shape=21) +
+  scale_fill_gradient2(low="#3A89C9",mid='#FFFAD2',high='#D24D3E', name="PI") +
+  ggtitle("PI by fly") + ylab(NULL) + xlab("genotype")
+
+```
+
+
+

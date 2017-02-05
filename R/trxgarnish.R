@@ -29,79 +29,96 @@
 #' @export
 #'
 
-trxgarnish <- function (explist,t=NULL,filter=TRUE)
+trxgarnish <- function (explist,t=NULL,filter=TRUE,jump=40)
   {
    if ("trx" %in% names(explist)) {
       trx<-explist$trx }
-  else trx<-explist
+   else trx<-explist
 
    ### guessarena: estimate centre by averaging the tom and bottom x and y values
    ### uses the median of the top and bottom 4 values to minimise outlier/error effects
    arena<-list()
-   tempsort<-sort(trx$x)
+   x<-trx$x
+   y<-trx$y
+   position<-complex(real=x,imaginary=y)
 
-   ## some tracks are temporarily lost and they are given a x,y location of 0,0; removed here
+   ## some tracks are temporarily lost and they are given a x,y location near 0,0; removed here
    ## to ensure they are not computed into the arena estimation
-   tempsort<-tempsort[tempsort>1]
-   topx<-tail(tempsort,4)
-   bottomx<-head(tempsort,4)
-   arena$x<-mean(c(median(topx),median(bottomx)))
-   tempsort<-sort(trx$y)
-   tempsort<-tempsort[tempsort>1]
-   topy<-tail(tempsort,4)
-   bottomy<-head(tempsort,4)
-   arena$y<-mean(c(median(topy),median(bottomy)))
-   arena$r<-max(c(topx-arena$x,arena$x-bottomx,topy-arena$y,arena$y-bottomy))
-   if ("exp" %in% names(explist)) {
-     explist$exp$arena<-arena }
+   position[Mod(position)<20]<-NA
 
-   ### arena-based localisation variables
-   radius<-((trx$x-arena$x)^2+(trx$y-arena$y)^2)^0.5
-   edge<-max(radius[radius<400])-radius
-   distance<-apply(cbind(abs(trx$x-arena$x),abs(trx$y-arena$y)),1,min)
-   quadrant<-sign((trx$x-arena$x)*(trx$y-arena$y))
-   trx<-cbind(trx,radius,edge,distance,quadrant)
+   ### in case the arena variables are passed or pre-existing somehow, use those
+   ### otherwise calculate the location of the centre of the arena based on data
+
+   if (!("arena" %in% names(explist$exp))) {
+                                        tempsort<-sort(Re(position))
+                                        topx<-tail(tempsort,4)
+                                        bottomx<-head(tempsort,4)
+                                        arena$x<-mean(c(median(topx),median(bottomx)))
+                                        tempsort<-sort(Im(position))
+                                        topy<-tail(tempsort,4)
+                                        bottomy<-head(tempsort,4)
+                                        arena$y<-mean(c(median(topy),median(bottomy)))
+                                        arena$r<-max(c(topx-arena$x,arena$x-bottomx,
+                                                       topy-arena$y,arena$y-bottomy))
+                                       }
+   if ("exp" %in% names(explist)) {
+                                        explist$exp$arena<-arena }
+
+   ### re-center x,y to the arena centre and REPLACE original location variables
+   x<-x-arena$x
+   y<-y-arena$y
+   trx$x<-x
+   trx$y<-y
+   position<-complex(real=x,imaginary=y)
+
+   ### calculate polar coordinates and use them to define quadrant identity
+   r<-Mod(position)
+   edge<-max(r)-r
+   phi<-Arg(position)
+   quadrant<-as.integer((phi%%pi<(pi/2))*2-1)
+   distance<-apply(cbind(abs(trx$x),abs(trx$y)),1,min)
+   trx<-cbind(trx,r,edge,phi,distance,quadrant)
+
+   ## order data by id so that gap-based calculations run correctly
+   ## (consecutive rows are consecutive frames of one individual)
+   ## this is very time-consuming and unnecessary given the current structure of CTrax output
+   ## which is already sorted by id, so it is now unused
+      #   trx<-trx[order(trx$id,trx$time),]
 
    ### movement variables: only frame-to-frame vars are calculated
    dx<-ave(trx$x,trx$id,FUN=filldiff)
    dy<-ave(trx$y,trx$id,FUN=filldiff)
    step<-(dx^2+dy^2)^0.5
-   sidestep<-anglefix(flyturn(trx,framelag=1))
-   sidestep<-(abs(sidestep)>(pi/2))*pi + sidestep*((sidestep<=(pi/2))*2-1)
+   yaw<-anglefix(flyturn(trx,framelag=1))
+   yaw<-(abs(yaw)>(pi/2))*pi + yaw*((yaw<=(pi/2))*2-1)
    spin<-anglefix(ave(trx$theta,trx$id,FUN=filldiff))
    spin<-(abs(spin)>(pi/2))*pi + spin*((spin<=(pi/2))*2-1)
+   trx<-cbind(trx,step,yaw,spin)
 
-   trx<-cbind(trx,step,sidestep,spin)
+   ## filter option: identifies unrealistic jumps, replaces movement variables with NA's
+   if (filter==TRUE) {
+        trx$step[trx$step>jump]<-NA
+        trx$yaw[trx$step>jump]<-NA
+        }
 
-   ### time protocol merge - instead of passing it as a separate var,
-   ### load it into the exp list with the name t
+   ### t can be attached to the experiment list as a data frame t (this will override a passed t)
    if ("t" %in% names(explist)) {
-      trx<-merge(trx,explist$t,by="time",all.x=T) }
+      t<-explist$t }
 
-   ### or if it's easier to pass it to the reader function, do it here
+   ### or it can be passed to the function
    if (!is.null(t)) {
-      trx<-merge(trx,t,by="time",all.x=T) }
+      t<-as.data.frame(lapply(t,FUN=as.integer))
+      trx<-merge(trx,t,by="time",all.x=T)
+      trx<-trx[order(trx$id,trx$time),]
+      }
 
    ### if time protocol information has been passed, calculate quadrant preference
    if ("section" %in% colnames(trx)) {
-      preference<-trx$distance*trx$quadrant*((trx$section>3)*((trx$section%%2)*2-1))
+      preference<-as.integer(trx$distance*trx$quadrant*((trx$section>3)*((trx$section%%2)*2-1)))
       trx<-cbind(trx,preference) }
 
-   ## new in version 0.3: order data by id so that gap-based calculations run correctly
-   ## (consecutive rows are consecutive frames of one individual)
-   ## also collects speed and angular displacement NAs at beginning and end of track
-   ## this may become unnecessary if I sort out those values to have better placeholders
-
-   trx<-trx[order(trx$id,trx$time),]
-
-   ## filter option: identifies artefacts as unrealistic jumps and placeholder x values, replaces all calculations
-   ## with NA's
-
-   if (filter==TRUE) {
-     fakes<-unique(c(which(trx$step>50), which(trx$x==0)))
-	   whichcols<-intersect(c("radius","edge","distance","quadrant","step","sidestep","spin","preference"),colnames(trx))
-     trx[fakes,whichcols]<-rep(NA,length(whichcols))
-   }
+   ## factorise id
+   trx$id<-factor(trx$id)
 
    if ("trx" %in% names(explist)) {
      explist$trx<-trx

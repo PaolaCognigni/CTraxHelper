@@ -1,0 +1,73 @@
+---
+title: "Script 2.1 - Preference Index calculation"
+author: "Paola Cognigni"
+date: "4 February 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+require(CTraxHelper)
+require(ggplot2)
+```
+
+```{r data-file-input}
+load('garn.RData')
+```
+
+Preferences are calculated based on the position of flies in the last 5 s of each 30-s repeat of the quadrant paradigm. Preference is scored as 1 for each frame inside the lit quadrant and 0 for each frame outside.
+
+```{r PI-calc}
+PIbyfly<-list()
+PIbyrep<-list()
+nflies<-length(garn)
+flynames<-names(garn)
+
+for (i in 1:nflies) {
+  PIbyfly[[i]]<-PIquadrant(garn[[i]]$trx,by.fly=T)
+  PIbyrep[[i]]<-PIquadrant(garn[[i]]$trx,by.fly=F) }
+```
+
+
+```{r PI-df}
+PIfly<-data.frame()
+PIrep<-data.frame()
+for (i in 1:nflies) {
+  PIflytemp<-PIbyfly[[i]]
+  PIflytemp$id<-factor(PIflytemp$id)
+  PIfly<-rbind(PIfly,cbind(PIflytemp,'gen'=flynames[i]))
+  PIrep<-rbind(PIrep,cbind(PIbyrep[[i]],'gen'=flynames[i])) 
+}
+
+names(PIbyfly)<-flynames
+names(PIbyrep)<-flynames
+
+colSums(table(PIfly[,c("id","gen")]))
+```
+
+
+```{r PI-plot, fig.height=5, fig.width=8}
+
+PIfly<-merge(PIfly,aggregate(PIfly$PI,by=list(gen=PIfly$gen),FUN="mean"))
+PIrep<-merge(PIrep,aggregate(PIrep$PI,by=list(gen=PIrep$gen),FUN="mean"))
+
+ggplot(PIrep,aes(x=gen,y=PI)) +
+  geom_boxplot(outlier.colour = NA, aes(fill=x)) +
+  geom_point(aes(fill=PI), shape=21) +
+  scale_fill_gradient2(low="#3A89C9",mid='#FFFAD2',high='#D24D3E', name="PI") +
+  ggtitle("PI by repeat") + ylab(NULL) + xlab("genotype")
+
+ggplot(PIfly[!is.na(PIfly$id),],aes(x=gen,y=PI)) +
+  geom_boxplot(outlier.colour = NA, aes(fill=x)) +
+  geom_point(aes(fill=PI),shape=21) +
+  scale_fill_gradient2(low="#3A89C9",mid='#FFFAD2',high='#D24D3E', name="PI") +
+  ggtitle("PI by fly") + ylab(NULL) + xlab("genotype")
+
+```
+
+
+The PI lists (by fly and by repeat) are saved in `PIcalc.RData`.
+
+```{r save}
+save(PIbyfly,PIbyrep,file="PIcalc.RData")
+```
