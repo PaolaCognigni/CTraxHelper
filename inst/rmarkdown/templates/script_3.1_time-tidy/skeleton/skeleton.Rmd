@@ -1,0 +1,129 @@
+---
+title: "Script 3.1 - Time protocol harmoniser"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+require(CTraxHelper)
+require(ggplot2)
+```
+
+```{r time-df-input}
+load('t.RData')
+```
+
+Time protocol data is extracted from the file `t.RData`. Section 3 is identified on the basis of its light pattern (brief, alternating on-off sections).
+
+```{r sec3fix}
+gap=54
+lightgap=18
+
+sec3fix<-function (t,gap=54,lightgap=18, dummy=TRUE) {
+  timer<-t$lit
+  events<-which(diff(timer)!=0)
+  starts<-c(1,events+1)
+  ends<-c(events,length(timer))
+  lengths<-ends-starts
+  values<-timer[starts]
+  
+  ## look for the distinctive pattern of section 3  and extract light-on frames
+  realstarts<-starts[lengths<gap&values==1]
+  realjitter<-realstarts%%gap
+  jitterbase<-realstarts%/%gap
+
+  ## identify and fix clusters of jitter that straddle the integer gap
+  if (max(realjitter)-min(realjitter)>gap/2) {
+     jitterbase[realjitter>(gap/2)]<-jitterbase[realjitter>(gap/2)]+1
+     realjitter[realjitter>(gap/2)]<-realjitter[realjitter>(gap/2)]-gap 
+  }
+  
+  ## this section assumes that the protocol structure is: 10 blinks gap frames apart, then a break, then
+  ## another train of 10 blinks. It will also generate 10 artificial blinks in the break section.
+  ## to generalise this would be a bit more work and lots of loops.
+  sec1jitter<-min(realjitter[1:10])
+  sec2jitter<-min(realjitter[11:20])
+  patternstarts<-c(jitterbase[1]*gap+sec1jitter,
+                  (jitterbase[1]+jitterbase[11])*gap%/%2 + round((sec1jitter+sec2jitter)/2),
+                   jitterbase[11]*gap+sec2jitter)
+  synthstarts<-rep(patternstarts,each=10) + (rep(0:9,3)*gap)
+  synthlit<-rep(0,(synthstarts[30]+53))
+  synthlit[rep(synthstarts,each=lightgap)+rep(0:(lightgap-1),length(synthstarts))]<-1
+  synthlit<-synthlit[synthstarts[1]:length(synthlit)]
+  synthtimer<-timer
+  synthtimer[synthstarts[1]:(synthstarts[1]+length(synthlit)-1)]<-synthlit
+
+  synthprot<-rle(t$section)$values
+  synthprot<-synthprot[-(which(synthprot==3)[1])]
+  
+  tsynth<-timewriter(synthtimer,prot=synthprot[!is.na(synthprot)])
+
+  sec3hole<-(tsynth$time>=synthstarts[11] & tsynth$time<synthstarts[21])
+  sec3rept2<-(tsynth$time>=synthstarts[21] & tsynth$time<(synthstarts[30]+gap))
+  tsynth$section[sec3hole]<-0
+  tsynth$rept[sec3hole]<-0
+  tsynth$rept[sec3rept2]<-2
+
+  tsynth$sectiontimer[sec3hole]<-1:sum(sec3hole)
+  tsynth$sectiontimer[sec3rept2]<-1:sum(sec3rept2)
+
+  tsynth$chunk[tsynth$chunk==3 & (tsynth$time<synthstarts[1] | tsynth$time>=(synthstarts[30]+gap))]<-0
+
+  ## decorate tsynth with protocol features
+  progress<-data.frame(
+    "baset"=rep(as.integer(synthstarts),each=gap),
+    "timer1s"=rep(0:(lightgap-1),3*length(synthstarts)),
+    "timer3s"=rep(0:(gap-1),length(synthstarts)),
+    "which1s"=rep(rep(0:2,each=lightgap),length(synthstarts)),
+    "which3s"=rep(rep(0:9, each=gap),3)
+  )
+
+  progress<-cbind("time"=progress$baset+
+                        (progress$which1s*lightgap)+
+                         progress$timer1s,
+                         progress)
+  tsynth<-merge(tsynth,progress,by="time",all.x=TRUE,sort=TRUE)
+  tsynth<-as.data.frame(lapply(tsynth,FUN=as.integer))
+  
+  return(tsynth)
+}
+
+```
+
+The imposed protocol assumes `r gap`-frame repeats starting with `r lightgap` frames of light. It also includes a dummy protocol in the unlit rest period to be used as internal control. 
+
+```{r synthtimer-plot, fig.height=4, fig.width=8}
+tsynth<-sec3fix(t)
+
+ggplot() + geom_ribbon(data=t, aes(x=time,ymin=0,ymax=lit), fill='orange', colour=NA) +
+           geom_ribbon(data=tsynth, aes(x=time,ymin=0,ymax=lit*0.5), fill='cyan', alpha=0.4, colour=NA) +
+           theme_classic()            
+```
+
+The tidied time protocol is saved in `tsynth.RData`.
+
+```{r save-tsynth}
+save(tsynth,file="tsynth.RData")
+```
+
+This new protocol is applied to pre-calculated data. Instead of re-running `trxgarnish`, time protocol is stripped and re-merged, as the only time-specific value (quadrant pattern) is irrelevant to section 3. A section 3-specific data frame with synthetic time is saved in `sec3.RData`.
+
+```{r sec3-maker}
+load("garn.RData")
+sec3range<-tsynth$time[tsynth$section==3]
+timevars<-colnames(tsynth)[-which(colnames(tsynth)=="time")]
+
+sec3<-list()
+for (i in 1:length(garn)) {
+  itrx<-garn[[i]]$trx
+  itrx<-itrx[itrx$time %in% sec3range,]
+  itrx<-merge(itrx[,!(colnames(itrx) %in% timevars)],tsynth,by="time",all.x=TRUE)
+  itrx<-itrx[order(itrx$id,itrx$time),]
+  sec3[[i]]<-garn[[i]]
+  sec3[[i]]$t<-tsynth
+  sec3[[i]]$trx<-itrx
+}
+
+names(sec3)<-names(garn)
+save(sec3,file="sec3.RData")
+```
