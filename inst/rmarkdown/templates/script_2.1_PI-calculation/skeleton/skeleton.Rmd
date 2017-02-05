@@ -39,6 +39,9 @@ for (i in 1:nflies) {
   PIrep<-rbind(PIrep,cbind(PIbyrep[[i]],'gen'=flynames[i])) 
 }
 
+names(PIbyfly)<-flynames
+names(PIbyrep)<-flynames
+
 colSums(table(PIfly[,c("id","gen")]))
 ```
 
