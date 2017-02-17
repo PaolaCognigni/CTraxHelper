@@ -1,7 +1,5 @@
 ---
 title: "Script 1.1 - Track garnish"
-author: "Paola Cognigni"
-date: "4 February 2017"
 output: html_document
 ---
 

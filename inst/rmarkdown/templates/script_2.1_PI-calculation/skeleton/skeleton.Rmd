@@ -1,7 +1,5 @@
 ---
 title: "Script 2.1 - Preference Index calculation"
-author: "Paola Cognigni"
-date: "4 February 2017"
 output: html_document
 ---
 

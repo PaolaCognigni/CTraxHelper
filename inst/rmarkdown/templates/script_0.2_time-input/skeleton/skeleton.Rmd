@@ -1,7 +1,5 @@
 ---
 title: "Script 0.2 - Time protocol input"
-author: "Paola Cognigni"
-date: "4 February 2017"
 output: html_document
 ---
 

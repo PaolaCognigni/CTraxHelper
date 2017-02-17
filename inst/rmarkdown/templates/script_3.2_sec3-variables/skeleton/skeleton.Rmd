@@ -10,36 +10,36 @@ require(ggplot2)
 ```
 
 ```{r time-df-input}
-load('sec3.RData')
+sec3<-readRDS('sec3.RDS')
 ```
 
-Section 3 data is loaded from the file `sec3.RData`, generated using a synthetic protocol.
+Section 3 data is loaded from the file `sec3.RDS`, generated using a synthetic protocol.
 
 ```{r dfcollate}
 s3df<-data.frame()
 for (i in 1:length(sec3)) {
-    s3df<-rbind(s3df,cbind(sec3[[i]]$trx, "gen" = names(sec3)[i]))
-  }
+s3df<-rbind(s3df,cbind(sec3[[i]]$trx, "gen" = names(sec3)[i]))
+}
 
 ```
 
 The list is turned into a data frame with an additional column `gen` for the genotype, then a few convenience variables are appended (absolute values and median-smoothened values).
 
-```{r var-append}
+```{r var-append, message=FALSE, warning=FALSE}
 avgwindow<-7
 
 s3df<-cbind(s3df,
-            "twirl" = abs(s3df$spin),
-            "twist" = abs(s3df$yaw),
-            "pace" = narunmed(s3df$step,avgwindow),
-            "slant" = narunmed(s3df$spin,avgwindow),
-            "camber" = abs(narunmed(s3df$spin,avgwindow))
-            )
-
+                "twirl" = abs(s3df$spin),
+                "twist" = abs(s3df$yaw),
+                "pace" = narunmed(s3df$step,avgwindow),
+                "slant" = narunmed(s3df$spin,avgwindow),
+                "camber" = abs(narunmed(s3df$spin,avgwindow))
+                )
+str(s3df)
 ```
 
-The data frame is saved in `s3df.RData`.
+The data frame is saved as `s3df.RDS`.
 
 ```{r save-s3df}
-save(s3df,file="s3df.RData")
+saveRDS(s3df,file="s3df.RDS")
 ```

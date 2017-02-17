@@ -63,6 +63,7 @@ sec3fix<-function (t,gap=54,lightgap=18, dummy=TRUE) {
   tsynth$section[sec3hole]<-0
   tsynth$rept[sec3hole]<-0
   tsynth$rept[sec3rept2]<-2
+  tsynth$section[sec3rept2]<-3
 
   tsynth$sectiontimer[sec3hole]<-1:sum(sec3hole)
   tsynth$sectiontimer[sec3rept2]<-1:sum(sec3rept2)
@@ -100,23 +101,25 @@ ggplot() + geom_ribbon(data=t, aes(x=time,ymin=0,ymax=lit), fill='orange', colou
            theme_classic()            
 ```
 
-The tidied time protocol is saved in `tsynth.RData`.
+The tidied time protocol is saved in `tsynth.RDS`.
 
 ```{r save-tsynth}
-save(tsynth,file="tsynth.RData")
+saveRDS(tsynth,file="tsynth.RDS")
 ```
 
-This new protocol is applied to pre-calculated data. Instead of re-running `trxgarnish`, time protocol is stripped and re-merged, as the only time-specific value (quadrant pattern) is irrelevant to section 3. A section 3-specific data frame with synthetic time is saved in `sec3.RData`.
+This new protocol is applied to pre-calculated data. Instead of re-running `trxgarnish`, time protocol is stripped and re-merged, as the only time-specific value (quadrant pattern) is irrelevant to section 3. A section 3-specific data frame with synthetic time is saved in `sec3.RDS`.
 
 ```{r sec3-maker}
 load("garn.RData")
-sec3range<-tsynth$time[tsynth$section==3]
+sec3interval<-tsynth$time[tsynth$section==3]
+sec3start<-min(sec3interval)
+sec3end<-max(sec3interval)
 timevars<-colnames(tsynth)[-which(colnames(tsynth)=="time")]
 
 sec3<-list()
 for (i in 1:length(garn)) {
   itrx<-garn[[i]]$trx
-  itrx<-itrx[itrx$time %in% sec3range,]
+  itrx<-itrx[itrx$time>=sec3start & itrx$time<=sec3end,]
   itrx<-merge(itrx[,!(colnames(itrx) %in% timevars)],tsynth,by="time",all.x=TRUE)
   itrx<-itrx[order(itrx$id,itrx$time),]
   sec3[[i]]<-garn[[i]]
@@ -125,5 +128,5 @@ for (i in 1:length(garn)) {
 }
 
 names(sec3)<-names(garn)
-save(sec3,file="sec3.RData")
+saveRDS(sec3,file="sec3.RDS")
 ```
