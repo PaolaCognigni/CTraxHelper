@@ -44,7 +44,7 @@ trxgarnish <- function (explist,t=NULL,filter=TRUE,jump=40)
 
    ## some tracks are temporarily lost and they are given a x,y location near 0,0; removed here
    ## to ensure they are not computed into the arena estimation
-   position[Mod(position)<20]<-NA
+   position[Mod(position)<100]<-NA
 
    ### in case the arena variables are passed or pre-existing somehow, use those
    ### otherwise calculate the location of the centre of the arena based on data
