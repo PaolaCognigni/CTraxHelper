@@ -45,7 +45,7 @@ The data is structured into a `r length(garn)`-element `garn` list that contains
     * integer: `r names(vartype[garnvars][vartype[garnvars]=="integer"])`
     * numeric: `r names(vartype[garnvars][vartype[garnvars]=="numeric"])`
 
-The list is saved to `r paste(getwd(),"garn.RDS",sep="/")`.
+The list is saved to **`r paste(getwd(),"garn.RDS",sep="/")`**.
 
 ```{r garn-save}
 saveRDS(garn,file="garn.RDS")

@@ -101,16 +101,16 @@ ggplot() + geom_ribbon(data=t, aes(x=time,ymin=0,ymax=lit), fill='orange', colou
            theme_classic()            
 ```
 
-The tidied time protocol is saved in `tsynth.RDS`.
+The tidied time protocol is saved in **`r paste(getwd(),"tsynth.RDS",sep="/")`**.
 
 ```{r save-tsynth}
 saveRDS(tsynth,file="tsynth.RDS")
 ```
 
-This new protocol is applied to pre-calculated data. Instead of re-running `trxgarnish`, time protocol is stripped and re-merged, as the only time-specific value (quadrant pattern) is irrelevant to section 3. A section 3-specific data frame with synthetic time is saved in `sec3.RDS`.
+This new protocol is applied to pre-calculated data. Instead of re-running `trxgarnish`, time protocol is stripped and re-merged, as the only time-specific value (quadrant pattern) is irrelevant to section 3. A section 3-specific data frame with synthetic time is saved in **`r paste(getwd(),"sec3.RDS",sep="/")`**.
 
 ```{r sec3-maker}
-load("garn.RData")
+garn<-readRDS("garn.RDS")
 sec3interval<-tsynth$time[tsynth$section==3]
 sec3start<-min(sec3interval)
 sec3end<-max(sec3interval)

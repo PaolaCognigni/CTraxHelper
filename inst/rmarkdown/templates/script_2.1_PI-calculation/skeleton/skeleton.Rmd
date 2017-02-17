@@ -64,7 +64,7 @@ ggplot(PIfly[!is.na(PIfly$id),],aes(x=gen,y=PI)) +
 ```
 
 
-The PI lists (by fly and by repeat) are saved in `r paste(getwd(),"PIbyfly.RDS",sep="/")` and `r paste(getwd(),"PIbyrep.RDS",sep="/")`.
+The PI lists (by fly and by repeat) are saved in **`r paste(getwd(),"PIbyfly.RDS",sep="/")`** and **`r paste(getwd(),"PIbyrep.RDS",sep="/")`**.
 
 ```{r save}
 saveRDS(PIbyfly,file="PIbyfly.RDS")

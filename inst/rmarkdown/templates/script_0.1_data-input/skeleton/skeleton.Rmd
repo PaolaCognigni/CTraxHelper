@@ -9,7 +9,7 @@ require(CTraxHelper)
 ```
 
 
-```{r datadir_interactive, cache=TRUE}
+```{r datadir_interactive}
 datadir<-dirname(file.choose())
 workingdir<-getwd()
 ```
@@ -27,7 +27,7 @@ flynames<-paste(
 
 flynames<-gsub("ctrl","0",flynames)
 
-cbind("names"=filenames,"handles"=flynames)
+cbind("files"=filenames,"handles"=flynames)
 ```
 
 The imported data is loaded into a list `raw` of `r length(flynames)` named elements. The list is exported as the file **`r paste(workingdir,"raw.RDS",sep="/")`**.
