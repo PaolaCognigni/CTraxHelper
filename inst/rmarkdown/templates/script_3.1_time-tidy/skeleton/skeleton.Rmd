@@ -10,10 +10,10 @@ require(ggplot2)
 ```
 
 ```{r time-df-input}
-load('t.RData')
+t<-readRDS('t.RDS')
 ```
 
-Time protocol data is extracted from the file `t.RData`. Section 3 is identified on the basis of its light pattern (brief, alternating on-off sections).
+Time protocol data is extracted from the file `t.RDS`. Section 3 is identified on the basis of its light pattern (brief, alternating on-off sections).
 
 ```{r sec3fix}
 gap=54
