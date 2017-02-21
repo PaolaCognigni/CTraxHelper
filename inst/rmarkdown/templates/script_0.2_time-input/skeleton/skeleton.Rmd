@@ -1,7 +1,5 @@
 ---
 title: "Script 0.2 - Time protocol input"
-author: "Paola Cognigni"
-date: "4 February 2017"
 output: html_document
 ---
 
@@ -54,7 +52,7 @@ if (!autothresh) {
 ```
 
 The automatic threshold value is `r if (!autothresh) {("not ")}`adequate. 
-`r if (!autothresh) {(paste("It has been manually placed at ",thresh, " instead."))}
+`r if (!autothresh) {(paste("It has been manually placed at ",thresh, " instead."))}`
 
 ```{r protocol-structure}
 
@@ -65,10 +63,10 @@ The automatic threshold value is `r if (!autothresh) {("not ")}`adequate.
 
 ```
 
-This experiment's protocol section order has been **`r prot`**. This information is combined with the light protocol to generate the `t` timer data frame, which is saved in the file `t.RData`.
+This experiment's protocol section order has been **`r prot`**. This information is combined with the light protocol to generate the `t` timer data frame, which is saved in the file **`r paste(getwd(),"t.RDS",sep="/")`**.
 
 ```{r timewriter}
 t<-timewriter(timer,prot)
 
-save(t,file="t.RData")
+saveRDS(t,file="t.RDS")
 ```

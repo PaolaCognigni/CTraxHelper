@@ -1,7 +1,5 @@
 ---
 title: "Script 2.1 - Preference Index calculation"
-author: "Paola Cognigni"
-date: "4 February 2017"
 output: html_document
 ---
 
@@ -12,7 +10,7 @@ require(ggplot2)
 ```
 
 ```{r data-file-input}
-load('garn.RData')
+garn<-readRDS('garn.RDS')
 ```
 
 Preferences are calculated based on the position of flies in the last 5 s of each 30-s repeat of the quadrant paradigm. Preference is scored as 1 for each frame inside the lit quadrant and 0 for each frame outside.
@@ -66,8 +64,9 @@ ggplot(PIfly[!is.na(PIfly$id),],aes(x=gen,y=PI)) +
 ```
 
 
-The PI lists (by fly and by repeat) are saved in `PIcalc.RData`.
+The PI lists (by fly and by repeat) are saved in **`r paste(getwd(),"PIbyfly.RDS",sep="/")`** and **`r paste(getwd(),"PIbyrep.RDS",sep="/")`**.
 
 ```{r save}
-save(PIbyfly,PIbyrep,file="PIcalc.RData")
+saveRDS(PIbyfly,file="PIbyfly.RDS")
+saveRDS(PIbyrep,fil="PIbyrep.RDS")
 ```

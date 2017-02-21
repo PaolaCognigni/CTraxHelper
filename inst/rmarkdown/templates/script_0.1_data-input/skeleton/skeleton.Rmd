@@ -1,7 +1,5 @@
 ---
 title: "Script 0.1 - Data input"
-author: "Paola Cognigni"
-date: "4 February 2017"
 output: html_document
 ---
 
@@ -11,7 +9,7 @@ require(CTraxHelper)
 ```
 
 
-```{r datadir_interactive, cache=TRUE}
+```{r datadir_interactive}
 datadir<-dirname(file.choose())
 workingdir<-getwd()
 ```
@@ -29,10 +27,10 @@ flynames<-paste(
 
 flynames<-gsub("ctrl","0",flynames)
 
-cbind("names"=filenames,"handles"=flynames)
+cbind("files"=filenames,"handles"=flynames)
 ```
 
-The imported data is loaded into a list `raw` of `r length(flynames)` named elements. The list is exported as the file **`r paste(workingdir,"raw.RData",sep="/")`**.
+The imported data is loaded into a list `raw` of `r length(flynames)` named elements. The list is exported as the file **`r paste(workingdir,"raw.RDS",sep="/")`**.
 
 ```{r trxread}
 raw<-list()
@@ -41,5 +39,5 @@ for (i in 1:nflies) {
     raw[[i]]<-trxread(filepaths[i])
     }
 names(raw)<-flynames
-save(raw,file="raw.RData")
+saveRDS(raw,file="raw.RDS")
 ```
