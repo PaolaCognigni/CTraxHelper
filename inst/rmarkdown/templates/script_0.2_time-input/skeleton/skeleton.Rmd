@@ -6,6 +6,7 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 require(CTraxHelper)
+require(ggplot2)
 ```
 
 
@@ -69,4 +70,13 @@ This experiment's protocol section order has been **`r prot`**. This information
 t<-timewriter(timer,prot)
 
 saveRDS(t,file="t.RDS")
+```
+
+```{r protoplotter, fig.width=8, fig.height=6}
+ggplot(tidyr::gather(t, key=protocol, value=value, -time), 
+                aes(time, value, colour=protocol)) +
+         geom_path() +
+         facet_wrap(~protocol, ncol=1, switch="y", scales="free_y") +
+         theme_classic() +
+         theme(axis.title.y=element_blank())
 ```
