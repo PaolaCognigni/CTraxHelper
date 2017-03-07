@@ -44,7 +44,7 @@ trxgarnish <- function (explist,t=NULL,filter=TRUE,jump=40)
 
    ## some tracks are temporarily lost and they are given a x,y location near 0,0; removed here
    ## to ensure they are not computed into the arena estimation
-   position[Mod(position)<20]<-NA
+   position[Mod(position)<100]<-NA
 
    ### in case the arena variables are passed or pre-existing somehow, use those
    ### otherwise calculate the location of the centre of the arena based on data
@@ -65,15 +65,15 @@ trxgarnish <- function (explist,t=NULL,filter=TRUE,jump=40)
                                         explist$exp$arena<-arena }
 
    ### re-center x,y to the arena centre and REPLACE original location variables
-   x<-x-arena$x
-   y<-y-arena$y
+   x<-Re(position)-arena$x
+   y<-Im(position)-arena$y
    trx$x<-x
    trx$y<-y
    position<-complex(real=x,imaginary=y)
 
    ### calculate polar coordinates and use them to define quadrant identity
    r<-Mod(position)
-   edge<-max(r)-r
+   edge<-max(r,na.rm=TRUE)-r
    phi<-Arg(position)
    quadrant<-as.integer((phi%%pi<(pi/2))*2-1)
    distance<-apply(cbind(abs(trx$x),abs(trx$y)),1,min)
