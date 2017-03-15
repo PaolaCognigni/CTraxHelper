@@ -21,7 +21,7 @@ filenames<-list.files(datadir)[grepl('.mat',list.files(datadir))]
 filepaths<-paste(datadir,filenames,sep="/")
 
 flynames<-paste(
-  switch(as.character(grepl("male",datadir)+grepl("female",datadir)), '1'='m', '2'='f', '0'='n'),
+  switch(as.character(grepl("ale",datadir)+grepl("emale",datadir)), '1'='m', '2'='f', '0'='n'),
   substr(filenames,regexpr(" ",filenames)+1,regexpr("mat",filenames)-2),
   sep="")
 
