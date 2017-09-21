@@ -4,7 +4,7 @@
 \alias{trxgarnish}
 \title{Track garnisher for time and position measures}
 \usage{
-trxgarnish(explist, t = NULL, filter = TRUE)
+trxgarnish(explist, t = NULL, filter = TRUE, jump = 40)
 }
 \arguments{
 \item{explist}{a track data frame or experiment list (containing a \code{trx} data frame element)}
@@ -15,13 +15,13 @@ which must match equivalent columns in the track data frame.}
 \value{
 A garnished track data frame or experiment list (depending on the format in input) including
 the columns \code{radius}, \code{edge}, \code{distance} and \code{quadrant}, and the first and second
-derivative variables \code{step}, \code{sidestep} and \code{spin}; if there is a time protocol, also
+derivative variables \code{step}, \code{yaw} and \code{spin}; if there is a time protocol, also
 includes all columns of that data frame and the \code{preference} column calculated for the appropriate protocol section.
 }
 \description{
 Computes distance from centre, quadrant edge and quadrant identity. Frame-by-frame variables are computed
-(frame-by frame speed (\code{step}), angle relative to plate (\code{sidestep}) and change in theta (\code{spin})).
-and also used for some quality control (eliminate speed>50). For movement calculated over different lags, see
+(frame-by frame speed (\code{step}), angular velocity (\code{yaw}) and change in theta (\code{spin})).
+and also used for some quality control (eliminate unrealistic speeds). For movement calculated over different lags, see
 \code{\link{flymoves}}).
 }
 \details{

@@ -1,8 +1,8 @@
 #' Track garnisher for time and position measures
 #'
 #' Computes distance from centre, quadrant edge and quadrant identity. Frame-by-frame variables are computed
-#' (frame-by frame speed (\code{step}), angle relative to plate (\code{sidestep}) and change in theta (\code{spin})).
-#' and also used for some quality control (eliminate speed>50). For movement calculated over different lags, see
+#' (frame-by frame speed (\code{step}), angular velocity (\code{yaw}) and change in theta (\code{spin})).
+#' and also used for some quality control (eliminate unrealistic speeds). For movement calculated over different lags, see
 #' \code{\link{flymoves}}).
 #'
 #' If a time protocol is available, it also includes protocol structure information and calculates quadrant preference
@@ -24,7 +24,7 @@
 #'
 #' @return A garnished track data frame or experiment list (depending on the format in input) including
 #' the columns \code{radius}, \code{edge}, \code{distance} and \code{quadrant}, and the first and second
-#' derivative variables \code{step}, \code{sidestep} and \code{spin}; if there is a time protocol, also
+#' derivative variables \code{step}, \code{yaw} and \code{spin}; if there is a time protocol, also
 #' includes all columns of that data frame and the \code{preference} column calculated for the appropriate protocol section.
 #' @export
 #'
